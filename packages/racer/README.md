@@ -2,16 +2,28 @@
 
 🏎️ **The World's Most Advanced Backend and Frontend Integrated Framework**
 
-Racer.js is a revolutionary full-stack framework that combines the power of Next.js with AI-driven code generation, live preview capabilities, and seamless API deployment.
+Racer.js is a revolutionary full-stack framework that combines the power of Next.js with AI-driven coordinated code generation, live preview capabilities, seamless API deployment, and complete DevOps lifecycle management.
 
 ## 🚀 Features
 
-- **🤖 AI Agent Coding**: Built-in AI agent that can generate, modify, and fix code automatically
+### AI-Powered Development
+- **🤖 Coordinated Code Generation**: Generate frontend and backend code that work together seamlessly
+- **🎯 App Router Support**: Server Components, Server Actions, and API Routes
+- **🔄 Three Generation Strategies**: Choose between Server Actions, API Routes, or React Server Components
+- **🛠️ Auto-Fix**: Automatically fix common code issues
+
+### Development Experience
 - **🔥 Live Frontend Preview**: Real-time browser preview with hot reload for instant feedback
 - **⚡ Direct API Deployment**: Deploy backend APIs directly without complex configuration
-- **🎯 Native Agent Code Support**: Native support for agent-driven development workflows
 - **🌐 Full-Stack Integration**: Seamless integration between frontend and backend
 - **📦 Zero Config**: Start coding immediately with sensible defaults
+
+### DevOps & Operations
+- **🔄 CI/CD Integration**: Auto-generate pipelines for GitHub Actions, GitLab CI, Jenkins
+- **🔒 Security Checks**: Pre-deployment vulnerability scanning and dependency audits
+- **🚀 Multi-Target Deployment**: Deploy to Vercel, AWS, Docker, or locally
+- **📊 Monitoring & Observability**: Built-in error tracking and performance monitoring
+- **🐳 Docker Support**: Auto-generate Dockerfile and docker-compose configurations
 
 ## 📦 Installation
 
@@ -47,7 +59,129 @@ This will start:
 ### Generate Code with AI
 
 ```bash
-racer generate "Create a user authentication API endpoint"
+# Generate coordinated full-stack code
+racer generate "Create a user authentication system with login form"
+
+# Generate Server Action
+racer gen "Create a product submission form with server action"
+
+# Generate API Route
+racer gen "Create a RESTful users API endpoint"
+```
+
+## 💡 Usage Examples
+
+### Example 1: Coordinated Full-Stack Generation
+
+```typescript
+import { RacerFramework } from '@racer/core'
+
+const framework = new RacerFramework({
+  rootDir: __dirname,
+  enableAgent: true
+})
+
+await framework.start()
+
+const coordinator = framework.getAgentCoordinator()
+
+// Generate coordinated frontend and backend code
+const result = await coordinator.generateCoordinated({
+  frontend: {
+    prompt: 'Create a product list component'
+  },
+  backend: {
+    prompt: 'Create product API endpoint'
+  },
+  database: {
+    model: 'Product',
+    fields: {
+      id: 'string',
+      name: 'string',
+      price: 'number',
+      description: 'string'
+    }
+  },
+  strategy: 'server-action' // or 'api-route' or 'rsc'
+})
+
+console.log('Frontend:', result.frontend?.filePath)
+console.log('Backend:', result.backend?.filePath)
+```
+
+### Example 2: DevOps Lifecycle
+
+```typescript
+const lifecycle = framework.getLifecycleManager()
+
+// Run security checks
+const { passed, checks } = await lifecycle.runPreDeploymentChecks()
+
+// Generate CI/CD configuration
+const ciConfig = await lifecycle.generateCIConfig('github-actions')
+
+// Deploy to production
+const deployment = await lifecycle.deploy({
+  name: 'production',
+  type: 'vercel'
+})
+
+console.log('Deployed to:', deployment.url)
+```
+
+### Example 3: Generate Docker Configuration
+
+```typescript
+const lifecycle = framework.getLifecycleManager()
+
+// Generate Dockerfile
+const dockerfile = lifecycle.generateDockerfile()
+
+// Generate docker-compose.yml
+const dockerCompose = lifecycle.generateDockerCompose()
+
+// Setup monitoring
+const monitoring = await lifecycle.setupMonitoring()
+```
+
+## 📖 Generation Strategies
+
+### Server Actions (Best for Forms & Mutations)
+
+```typescript
+await coordinator.generateCoordinated({
+  frontend: { prompt: 'Create a signup form' },
+  backend: { prompt: 'Create user signup handler' },
+  strategy: 'server-action'
+})
+// ✅ Generates: Client Component + Server Action
+// ✅ No API routes needed
+// ✅ Type-safe, auto-revalidation
+```
+
+### API Routes (Best for Public APIs)
+
+```typescript
+await coordinator.generateCoordinated({
+  backend: { prompt: 'Create RESTful products API' },
+  strategy: 'api-route'
+})
+// ✅ Generates: API Route Handler + API Client
+// ✅ Standard REST patterns
+// ✅ Can be consumed by any client
+```
+
+### React Server Components (Best for Read-Heavy Pages)
+
+```typescript
+await coordinator.generateCoordinated({
+  frontend: { prompt: 'Create blog posts page' },
+  strategy: 'rsc'
+})
+// ✅ Generates: Server Component + Data Fetchers
+// ✅ Zero client JavaScript
+// ✅ Automatic caching
+```
 racer gen "Build a responsive navbar component"
 ```
 
