@@ -1,7 +1,9 @@
 import { RacerConfig } from '../types'
 import { AgentEngine } from '../agent/engine'
+import { AgentCoordinator } from '../agent/coordinator'
 import { PreviewServer } from '../preview/server'
 import { APIDeployer } from '../api/deployer'
+import { LifecycleManager } from '../devops/lifecycle'
 import * as path from 'path'
 
 /**
@@ -10,8 +12,10 @@ import * as path from 'path'
 export class RacerFramework {
   private config: RacerConfig
   private agentEngine?: AgentEngine
+  private agentCoordinator?: AgentCoordinator
   private previewServer?: PreviewServer
   private apiDeployer?: APIDeployer
+  private lifecycleManager?: LifecycleManager
   private isInitialized = false
 
   constructor(config: RacerConfig) {
@@ -39,6 +43,10 @@ export class RacerFramework {
       console.log('  ✓ Initializing AI Agent Engine...')
       this.agentEngine = new AgentEngine(this.config.agentConfig)
       await this.agentEngine.initialize()
+
+      // Initialize Agent Coordinator for full-stack code generation
+      console.log('  ✓ Initializing Agent Coordinator...')
+      this.agentCoordinator = new AgentCoordinator(this.agentEngine)
     }
 
     // Initialize Preview Server
@@ -55,6 +63,16 @@ export class RacerFramework {
       port: this.config.apiPort!,
       rootDir: this.config.rootDir
     })
+
+    // Initialize DevOps Lifecycle Manager
+    console.log('  ✓ Initializing DevOps Lifecycle Manager...')
+    this.lifecycleManager = new LifecycleManager({
+      enableCI: true,
+      enableDeployment: false,
+      enableMonitoring: true,
+      environment: 'development'
+    })
+    await this.lifecycleManager.initialize()
 
     this.isInitialized = true
     console.log('✅ Racer.js Framework initialized successfully!')
@@ -128,5 +146,19 @@ export class RacerFramework {
    */
   getAPIDeployer(): APIDeployer | undefined {
     return this.apiDeployer
+  }
+
+  /**
+   * Get the agent coordinator instance
+   */
+  getAgentCoordinator(): AgentCoordinator | undefined {
+    return this.agentCoordinator
+  }
+
+  /**
+   * Get the lifecycle manager instance
+   */
+  getLifecycleManager(): LifecycleManager | undefined {
+    return this.lifecycleManager
   }
 }
