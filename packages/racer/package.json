@@ -1,0 +1,59 @@
+{
+  "name": "@racer/core",
+  "version": "1.0.0",
+  "description": "World's most advanced backend and frontend integrated framework with AI agent coding capabilities",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./agent": {
+      "import": "./dist/agent/index.js",
+      "require": "./dist/agent/index.js",
+      "types": "./dist/agent/index.d.ts"
+    },
+    "./preview": {
+      "import": "./dist/preview/index.js",
+      "require": "./dist/preview/index.js",
+      "types": "./dist/preview/index.d.ts"
+    },
+    "./api": {
+      "import": "./dist/api/index.js",
+      "require": "./dist/api/index.js",
+      "types": "./dist/api/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "racer",
+    "framework",
+    "ai-agent",
+    "code-generation",
+    "next.js",
+    "fullstack"
+  ],
+  "author": "Racer Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.0",
+    "ws": "^8.2.3",
+    "chokidar": "^3.5.3",
+    "esbuild": "^0.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/express": "^4.17.0",
+    "@types/ws": "^8.5.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "next": "workspace:*"
+  }
+}
