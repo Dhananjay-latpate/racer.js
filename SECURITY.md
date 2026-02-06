@@ -18,14 +18,17 @@ The initial implementation used `ws` version `^8.2.3`, which had a known Denial 
 **Impact:** Service disruption through resource exhaustion
 
 ### Resolution
-Updated `ws` dependency from `^8.2.3` to `^8.17.1` (patched version)
+Updated `ws` dependency from `^8.2.3` to `^8.17.1` (patched version) across **all packages**:
 
-**File Modified:** `/packages/racer/package.json`
+**Files Modified:**
+- `/packages/racer/package.json` - Racer.js framework package
+- `/package.json` - Root package (development dependencies)
+- `/packages/next/package.json` - Next.js package
 
 ```json
 {
   "dependencies": {
-    "ws": "^8.17.1"  // Previously: "^8.2.3"
+    "ws": "8.17.1"  // Previously: "8.2.3"
   }
 }
 ```
