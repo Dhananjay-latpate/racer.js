@@ -1,0 +1,13 @@
+{
+  "name": "racer-demo",
+  "version": "1.0.0",
+  "description": "Demo application showcasing Racer.js framework capabilities",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@racer/core": "workspace:*"
+  }
+}
