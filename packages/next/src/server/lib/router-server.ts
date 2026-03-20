@@ -9,7 +9,7 @@ import '../require-hook'
 
 import url from 'url'
 import path from 'path'
-import loadConfig from '../config'
+import loadConfig, { type ConfiguredExperimentalFeature } from '../config'
 import { serveStatic } from '../serve-static'
 import setupDebug from 'next/dist/compiled/debug'
 import * as Log from '../../build/output/log'
@@ -48,7 +48,7 @@ import { normalizedAssetPrefix } from '../../shared/lib/normalized-asset-prefix'
 import { NEXT_PATCH_SYMBOL } from './patch-fetch'
 import type { ServerInitResult } from './render-server'
 import { filterInternalHeaders } from './server-ipc/utils'
-import { blockCrossSite } from './router-utils/block-cross-site'
+import { blockCrossSiteDEV } from './router-utils/block-cross-site-dev'
 import { traceGlobals } from '../../trace/shared'
 import { NoFallbackError } from '../../shared/lib/no-fallback-error.external'
 import {
@@ -90,6 +90,7 @@ export async function initialize(opts: {
   keepAliveTimeout?: number
   customServer?: boolean
   experimentalHttpsServer?: boolean
+  serverFastRefresh?: boolean
   startServerSpan?: Span
   quiet?: boolean
 }): Promise<ServerInitResult> {
@@ -98,10 +99,18 @@ export async function initialize(opts: {
     process.env.NODE_ENV = opts.dev ? 'development' : 'production'
   }
 
+  let experimentalFeatures: ConfiguredExperimentalFeature[] = []
   const config = await loadConfig(
     opts.dev ? PHASE_DEVELOPMENT_SERVER : PHASE_PRODUCTION_SERVER,
     opts.dir,
-    { silent: false }
+    {
+      silent: false,
+      reportExperimentalFeatures(features) {
+        experimentalFeatures = features.toSorted(({ key: a }, { key: b }) =>
+          a.localeCompare(b)
+        )
+      },
+    }
   )
 
   let compress: ReturnType<typeof setupCompression> | undefined
@@ -170,6 +179,7 @@ export async function initialize(opts: {
         port: opts.port,
         onDevServerCleanup: opts.onDevServerCleanup,
         resetFetch,
+        serverFastRefresh: opts.serverFastRefresh,
       })
     )
 
@@ -345,7 +355,7 @@ export async function initialize(opts: {
       // handle hot-reloader first
       if (development) {
         if (
-          blockCrossSite(
+          blockCrossSiteDEV(
             req,
             res,
             development.config.allowedDevOrigins,
@@ -497,7 +507,7 @@ export async function initialize(opts: {
           matchedOutput.type === 'nextStaticFolder'
         ) {
           if (opts.dev && !isNextFont(parsedUrl.pathname)) {
-            res.setHeader('Cache-Control', 'no-store, must-revalidate')
+            res.setHeader('Cache-Control', 'no-cache, must-revalidate')
           } else {
             res.setHeader(
               'Cache-Control',
@@ -722,6 +732,9 @@ export async function initialize(opts: {
     startServerSpan: opts.startServerSpan,
     quiet: opts.quiet,
     onDevServerCleanup: opts.onDevServerCleanup,
+    distDir: config.distDir,
+    experimentalFeatures,
+    cacheComponents: config.cacheComponents,
   }
   renderServerOpts.serverFields.routerServerHandler = requestHandlerImpl
 
@@ -797,7 +810,7 @@ export async function initialize(opts: {
 
       if (opts.dev && development && req.url) {
         if (
-          blockCrossSite(
+          blockCrossSiteDEV(
             req,
             socket,
             development.config.allowedDevOrigins,
@@ -823,7 +836,7 @@ export async function initialize(opts: {
         }
 
         const isHMRRequest = req.url.startsWith(
-          ensureLeadingSlash(`${hmrPrefix}/_next/webpack-hmr`)
+          ensureLeadingSlash(`${hmrPrefix}/_next/hmr`)
         )
 
         // only handle HMR requests if the basePath in the request
@@ -893,5 +906,8 @@ export async function initialize(opts: {
     closeUpgraded() {
       development?.bundler?.hotReloader?.close()
     },
+    distDir: config.distDir,
+    experimentalFeatures,
+    cacheComponents: config.cacheComponents,
   }
 }

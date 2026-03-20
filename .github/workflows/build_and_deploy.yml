@@ -3,9 +3,9 @@ name: build-and-deploy
 
 on:
   push:
-    # Don't run when tags are pushed
-    branches:
-      - '**'
+    # Don't run when tags or graphite base branches are pushed
+    branches-ignore:
+      - 'graphite-base/**'
   # we need the preview tarball for deploy tests
   pull_request:
     types: [opened, synchronize]
@@ -19,9 +19,8 @@ concurrency:
 
 env:
   NAPI_CLI_VERSION: 2.18.4
-  TURBO_VERSION: 2.5.5
+  TURBO_VERSION: 2.8.11
   NODE_LTS_VERSION: 20
-  CARGO_PROFILE_RELEASE_LTO: 'true'
   TURBO_TEAM: 'vercel'
   TURBO_CACHE: 'remote:rw'
   # Without this environment variable, rust-lld will fail because some dependencies defaults to newer version of macOS by default.
@@ -112,6 +111,12 @@ jobs:
           # Do not use restore-keys since it leads to indefinite growth of the cache.
 
       - run: pnpm install
+
+      - name: Set preview version
+        if: ${{ contains(fromJSON('["automated-preview","force-preview"]'), needs.deploy-target.outputs.value) }}
+        run: |
+          node scripts/set-preview-version.js "${{ github.sha }}"
+          pnpm install --no-frozen-lockfile
 
       - run: pnpm run build
 
@@ -318,7 +323,7 @@ jobs:
       # it can fail to restore in different OS'
       - uses: actions/checkout@v4
         with:
-          # crates/napi/build.rs uses git-describe to find the most recent git tag. It's okay if
+          # crates/next-napi-bindings/build.rs uses git-describe to find the most recent git tag. It's okay if
           # this fails, but fetch with enough depth that we're likely to find a recent tag.
           fetch-depth: 100
 
@@ -542,7 +547,7 @@ jobs:
       - name: Create tarballs
         # github.event.after is available on push and pull_request#synchronize events.
         # For workflow_dispatch events, github.sha is the head commit.
-        run: node scripts/create-preview-tarballs.js "${{ github.sha }}" "${{ github.event.after || github.sha }}" "${{ runner.temp }}/preview-tarballs"
+        run: node scripts/create-preview-tarballs.js "${{ github.event.after || github.sha }}" "${{ runner.temp }}/preview-tarballs"
 
       - name: Upload tarballs
         uses: actions/upload-artifact@v4
@@ -679,37 +684,6 @@ jobs:
     steps:
       - run: exit 1
         if: ${{ always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) }}
-
-  releaseStats:
-    name: Release Stats
-    runs-on:
-      - 'self-hosted'
-      - 'linux'
-      - 'x64'
-      - 'metal'
-    timeout-minutes: 25
-    needs: [publishRelease]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 25
-
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: next-swc-binaries-*
-          merge-multiple: true
-          path: packages/next-swc/native
-
-      - run: cp -r packages/next-swc/native .github/actions/next-stats-action/native
-
-      - run: ./scripts/release-stats.sh
-      - uses: ./.github/actions/next-stats-action
-        env:
-          PR_STATS_COMMENT_TOKEN: ${{ secrets.PR_STATS_COMMENT_TOKEN }}
-          NEXT_SKIP_NATIVE_POSTINSTALL: 1
-          # This uses the webpack bundle analyzer and for consistent results we need to use webpack.
-          # Once there is an equivalent analyzer for turbopack, we can remove this.
-          IS_WEBPACK_TEST: 1
 
   upload_turbopack_bytesize:
     if: ${{ needs.deploy-target.outputs.value != 'automated-preview'}}
