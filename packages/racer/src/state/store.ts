@@ -92,7 +92,9 @@ export function createStore<S>(config: StoreConfig<S>): StoreAPI<S> {
     // Handle direct setState actions
     if (action.type === SET_STATE_ACTION_TYPE) {
       const partial = action.payload as Partial<S>
-      state = { ...state, ...partial }
+      if (partial && typeof partial === 'object' && Object.keys(partial).length > 0) {
+        state = { ...state, ...partial }
+      }
     } else if (reducer) {
       isDispatching = true
       try {
@@ -109,24 +111,33 @@ export function createStore<S>(config: StoreConfig<S>): StoreAPI<S> {
 
   // ---- build middleware chain -----------------------------------------
 
+  // Use a mutable reference so that the middleware API's `dispatch`
+  // always points to the fully composed dispatch.  This ensures that
+  // nested dispatches (e.g. from thunk middleware) traverse the entire
+  // middleware chain rather than bypassing it.
+  let dispatch: Dispatch = baseDispatch
+
   function buildDispatch(): Dispatch {
     if (middleware.length === 0) {
       return baseDispatch
     }
 
-    const api = { getState, dispatch: baseDispatch }
+    const api = {
+      getState,
+      dispatch: (action: Action) => dispatch(action),
+    }
     const chain = middleware.map((mw) => mw(api))
 
     // compose: chain[0](chain[1](...chain[n](baseDispatch)))
-    let dispatch: Dispatch = baseDispatch
+    let composed: Dispatch = baseDispatch
     for (let i = chain.length - 1; i >= 0; i--) {
-      dispatch = chain[i](dispatch)
+      composed = chain[i](composed)
     }
 
-    return dispatch
+    return composed
   }
 
-  let dispatch: Dispatch = buildDispatch()
+  dispatch = buildDispatch()
 
   // ---- public API ----------------------------------------------------
 

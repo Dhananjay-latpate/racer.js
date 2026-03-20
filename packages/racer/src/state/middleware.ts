@@ -10,7 +10,26 @@ import type {
   LoggerOptions,
   Middleware,
   PersistOptions,
+  StorageAdapter,
 } from './types'
+
+// ---------------------------------------------------------------------------
+// Shared helpers
+// ---------------------------------------------------------------------------
+
+/** Resolve the default storage backend (localStorage when available). */
+function resolveStorage(
+  provided: StorageAdapter | undefined
+): StorageAdapter | null {
+  if (provided) return provided
+  if (
+    typeof globalThis !== 'undefined' &&
+    typeof (globalThis as any).localStorage !== 'undefined'
+  ) {
+    return (globalThis as any).localStorage
+  }
+  return null
+}
 
 // ---------------------------------------------------------------------------
 // Logger Middleware
@@ -113,14 +132,12 @@ export function persistMiddleware<S = any>(
 ): Middleware<S> {
   const {
     key,
-    storage = typeof globalThis !== 'undefined' &&
-    typeof (globalThis as any).localStorage !== 'undefined'
-      ? (globalThis as any).localStorage
-      : null,
+    storage: providedStorage,
     select,
     debounceMs = 100,
   } = options
 
+  const storage = resolveStorage(providedStorage)
   let timer: ReturnType<typeof setTimeout> | null = null
 
   return (api) => (next) => (action) => {
@@ -150,13 +167,8 @@ export async function hydrateStore<S>(
   store: { setState: (updater: Partial<S>) => void },
   options: Pick<PersistOptions<S>, 'key' | 'storage'>
 ): Promise<void> {
-  const {
-    key,
-    storage = typeof globalThis !== 'undefined' &&
-    typeof (globalThis as any).localStorage !== 'undefined'
-      ? (globalThis as any).localStorage
-      : null,
-  } = options
+  const { key, storage: providedStorage } = options
+  const storage = resolveStorage(providedStorage)
 
   if (!storage) return
 
