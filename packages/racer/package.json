@@ -24,6 +24,11 @@
       "import": "./dist/api/index.js",
       "require": "./dist/api/index.js",
       "types": "./dist/api/index.d.ts"
+    },
+    "./state": {
+      "import": "./dist/state/index.js",
+      "require": "./dist/state/index.js",
+      "types": "./dist/state/index.d.ts"
     }
   },
   "scripts": {
