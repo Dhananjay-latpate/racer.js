@@ -469,6 +469,13 @@ Start with these comprehensive guides:
 - Technology stack
 - Interaction patterns
 
+### 5. [Research Report](docs/RESEARCH_REPORT.md)
+**Future growth & platform monetization strategy**
+- Web development market analysis (2025–2030)
+- AI code generation market trends
+- Revenue generation strategy & pricing
+- Proposed features & implementation roadmap
+
 ## 🚀 Quick Start
 
 ### Installation
